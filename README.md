@@ -12,12 +12,12 @@ Also have a custom python starlette websockify server.
     - [uv](https://docs.astral.sh/uv/getting-started/installation/) (recommended)
     ```bash
     uv sync
-    uv run websockify.py  
+    uv run websockify.py
     ```
 
     - pip
     ```bash
-    pip install starlette uvicorn
+    pip install starlette uvicorn websockets
     python websockify.py
     ```
 
