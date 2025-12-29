@@ -1,0 +1,10 @@
+[project]
+name = "websockify"
+version = "0.0.0"
+description = "A WebSocket to TCP proxy/bridge."
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "starlette>=0.50.0",
+    "uvicorn>=0.40.0",
+]
