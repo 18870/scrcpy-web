@@ -12,7 +12,7 @@ import { Consumable, ReadableStream } from '@yume-chan/stream-extra';
 import { AdbWebSocketConnection } from './AdbWebSocketConnection';
 
 function App() {
-  const [wsUrl, setWsUrl] = useState('ws://localhost:22273/16417');
+  const [wsUrl, setWsUrl] = useState('ws://localhost:22273/ws/16417');
   const [adb, setAdb] = useState<Adb | null>(null);
 
   const [scrcpyClient, setScrcpyClient] = useState<AdbScrcpyClient<AdbScrcpyOptionsLatest<boolean>> | null>(null);
@@ -279,7 +279,7 @@ function App() {
           type="text"
           value={wsUrl}
           onChange={(e) => setWsUrl(e.target.value)}
-          placeholder="ws://localhost:8080"
+          placeholder="ws://localhost:22273/ws/16417"
           style={{ flex: 1, marginRight: 10, padding: '5px 10px' }}
           disabled={isRunning}
         />

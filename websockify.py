@@ -98,6 +98,8 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
 if __name__ == "__main__":
     import uvicorn
     from starlette.applications import Starlette
+    from starlette.staticfiles import StaticFiles
 
-    app = Starlette(routes=[WebSocketRoute("/{port}", websocket_endpoint)])
+    app = Starlette(routes=[WebSocketRoute("/ws/{port}", websocket_endpoint)])
+    app.mount("/", StaticFiles(directory="dist", html=True), name="static")
     uvicorn.run(app, host="localhost", port=22273)

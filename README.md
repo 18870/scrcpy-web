@@ -7,6 +7,13 @@ Also have a custom python starlette websockify server.
 
 1. [Download](https://github.com/Genymobile/scrcpy/releases) and place scrcpy-server at `public/scrcpy-server`, current version is `3.3.3` and may change in the future.
 
+2. Build web client:
+
+    ```bash
+    npm install
+    npm run build
+    ````
+
 2. Start a websockify server point to your device/emulator port, you can use official python websockify library or [websockify.py](websockify.py) included in this repo:
  
     - [uv](https://docs.astral.sh/uv/getting-started/installation/) (recommended)
@@ -21,14 +28,14 @@ Also have a custom python starlette websockify server.
     python websockify.py
     ```
 
-3. Open [http://localhost:5173](http://localhost:5173) in your browser.
-4. Connect to the websockify server `ws://localhost:22273/<device-port>`
-   e.g. `ws://localhost:22273/5555` for device on `127.0.0.1:5555`
+3. Open [http://localhost:22273](http://localhost:22273) in your browser.
+4. Connect to the websockify server `ws://localhost:22273/ws/<device-port>`
+   e.g. `ws://localhost:22273/ws/5555` for device on `127.0.0.1:5555`
 
 
 ## Extra
 
-Support url param for auto connection: `http://localhost:5173/?url=ws://localhost:22273/5555`
+Support url param for auto connection: `http://localhost:22273/?url=ws://localhost:22273/ws/5555`
 
 
 ## Credits
