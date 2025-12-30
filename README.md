@@ -14,7 +14,7 @@ Also have a custom python starlette websockify server.
     npm run build
     ````
 
-2. Start a websockify server point to your device/emulator port, you can use official python websockify library or [websockify.py](websockify.py) included in this repo:
+2. Start a websockify server point to your device/emulator port, you can use official python [websockify](https://github.com/novnc/websockify) library or [websockify.py](websockify.py) included in this repo:
  
     - [uv](https://docs.astral.sh/uv/getting-started/installation/) (recommended)
     ```bash
@@ -35,7 +35,9 @@ Also have a custom python starlette websockify server.
 
 ## Extra
 
-Support url param for auto connection: `http://localhost:22273/?url=ws://localhost:22273/ws/5555`
+- Support url param for auto connection: `http://localhost:22273/?url=ws://localhost:22273/ws/5555`
+- Support simple password auth:
+`uv run websockify.py --password your_password` and connect with `ws://localhost:22273/ws/5555?password=your_password`
 
 
 ## Credits

@@ -90,16 +90,31 @@ async def websockify(websocket: WebSocket, port: int) -> None:
     print(f"Connection to localhost:{port} closed")
 
 
-async def websocket_endpoint(websocket: WebSocket) -> None:
-    port = int(websocket.path_params["port"])
-    await websockify(websocket, port)
-
-
 if __name__ == "__main__":
+    import argparse
+    import pathlib
+
     import uvicorn
     from starlette.applications import Starlette
     from starlette.staticfiles import StaticFiles
 
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--host", type=str, default="localhost")
+    parser.add_argument("--port", type=int, default=22273)
+    parser.add_argument("--password", type=str, default=None)
+    args = parser.parse_args()
+
+    async def websocket_endpoint(websocket: WebSocket) -> None:
+        port = int(websocket.path_params["port"])
+
+        if args.password and websocket.query_params.get("password") != args.password:
+            await websocket.close(code=1008)
+            return
+
+        await websockify(websocket, port)
+
     app = Starlette(routes=[WebSocketRoute("/ws/{port}", websocket_endpoint)])
-    app.mount("/", StaticFiles(directory="dist", html=True), name="static")
-    uvicorn.run(app, host="localhost", port=22273)
+    if pathlib.Path("dist").exists():
+        app.mount("/", StaticFiles(directory="dist", html=True))
+
+    uvicorn.run(app, host=args.host, port=args.port)
