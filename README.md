@@ -5,7 +5,7 @@ Also have a custom python starlette websockify server.
 
 ## Guide
 
-1. [Download](https://github.com/Genymobile/scrcpy/releases) and place scrcpy-server at `public/scrcpy-server`, current version is `3.3.3` and may change in the future.
+1. [Download](https://github.com/Genymobile/scrcpy/releases) and place scrcpy-server at `public/scrcpy-server`, current version is `3.3.3` and may change in the future. To determine the correct version, go to definitions of `AdbScrcpyOptionsLatest` in [App.tsx](src/App.tsx).
 
 2. Build web client:
 

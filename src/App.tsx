@@ -6,19 +6,30 @@ import {
   AndroidKeyCode,
   AndroidKeyEventAction,
   AndroidMotionEventAction,
+  ScrcpyVideoCodecId,
 } from '@yume-chan/scrcpy';
 import { TinyH264Decoder } from '@yume-chan/scrcpy-decoder-tinyh264';
+import { WebCodecsVideoDecoder, WebGLVideoFrameRenderer } from '@yume-chan/scrcpy-decoder-webcodecs';
 import { Consumable, ReadableStream } from '@yume-chan/stream-extra';
 import { AdbWebSocketConnection } from './AdbWebSocketConnection';
 
 function App() {
-  const [wsUrl, setWsUrl] = useState('ws://localhost:22273/ws/16417');
+  const [wsUrl, setWsUrl] = useState(`ws://${window.location.hostname}:${window.location.port}/ws/16417`);
   const [adb, setAdb] = useState<Adb | null>(null);
 
   const [scrcpyClient, setScrcpyClient] = useState<AdbScrcpyClient<AdbScrcpyOptionsLatest<boolean>> | null>(null);
   const [status, setStatus] = useState<string>('');
   const [videoSize, setVideoSize] = useState<{ width: number; height: number } | null>(null);
   const [logs, setLogs] = useState<string[]>([]);
+
+  // Settings state
+  const [showSettings, setShowSettings] = useState(false);
+  const [maxSize, setMaxSize] = useState(1280);
+  const [videoBitRate, setVideoBitRate] = useState(256_000);
+  const [maxFps, setMaxFps] = useState(60);
+  const [audio, setAudio] = useState(false);
+  const [videoCodec, setVideoCodec] = useState<"h264" | "h265" | "av1">("h264");
+  const [decoderName, setDecoderName] = useState<"tinyh264" | "webcodecs">("webcodecs");
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -89,9 +100,11 @@ function App() {
       // 3. Start Scrcpy
       setStatus('Starting Scrcpy...');
       const options = new AdbScrcpyOptionsLatest<boolean>({
-        maxSize: 1280,
-        videoBitRate: 256_000,
-        audio: false,
+        maxSize,
+        videoBitRate,
+        maxFps,
+        audio,
+        videoCodec,
       });
 
       const client = await AdbScrcpyClient.start(
@@ -116,9 +129,21 @@ function App() {
         addLog(`Video size changed: ${size.width}x${size.height}`);
       });
 
-      const decoder = new TinyH264Decoder({
-        canvas: canvasRef.current!,
-      });
+      let decoder;
+      if (decoderName === 'webcodecs') {
+        const codecId = videoCodec === 'h264' ? ScrcpyVideoCodecId.H264 :
+          videoCodec === 'h265' ? ScrcpyVideoCodecId.H265 :
+            ScrcpyVideoCodecId.AV1;
+
+        decoder = new WebCodecsVideoDecoder({
+          codec: codecId,
+          renderer: new WebGLVideoFrameRenderer(canvasRef.current!),
+        });
+      } else {
+        decoder = new TinyH264Decoder({
+          canvas: canvasRef.current!,
+        });
+      }
 
       videoStream.stream
         .pipeTo(decoder.writable)
@@ -279,10 +304,24 @@ function App() {
           type="text"
           value={wsUrl}
           onChange={(e) => setWsUrl(e.target.value)}
-          placeholder="ws://localhost:22273/ws/16417"
+          placeholder={`ws://${window.location.hostname}:${window.location.port}/ws/<port>`}
           style={{ flex: 1, marginRight: 10, padding: '5px 10px' }}
           disabled={isRunning}
         />
+        <button
+          onClick={() => setShowSettings(!showSettings)}
+          style={{
+            padding: '5px 10px',
+            marginRight: 10,
+            background: '#6c757d',
+            color: 'white',
+            border: 'none',
+            borderRadius: 4,
+            cursor: 'pointer'
+          }}
+        >
+          Settings
+        </button>
         <button
           onClick={handleToggle}
           style={{
@@ -298,43 +337,103 @@ function App() {
         </button>
       </div>
 
-      {/* Main Content (Canvas) */}
-      <div style={{
-        flex: 1,
-        background: '#000',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        overflow: 'hidden',
-        position: 'relative'
-      }}>
-        <canvas
-          ref={canvasRef}
-          style={{
-            maxWidth: '100%',
-            maxHeight: '100%',
-            display: 'block',
-            touchAction: 'none',
-            outline: 'none'
-          }}
-          onPointerDown={handlePointer}
-          onPointerMove={handlePointer}
-          onPointerUp={handlePointer}
-          onPointerLeave={handlePointer}
-          tabIndex={0}
-        />
-
-        {/* Status Overlay */}
+      {/* Middle Container */}
+      <div style={{ flex: 1, display: 'flex', overflow: 'hidden', position: 'relative' }}>
+        {/* Main Content (Canvas) */}
         <div style={{
-          position: 'absolute',
-          top: 10,
-          left: 10,
-          color: 'rgba(255,255,255,0.7)',
-          pointerEvents: 'none',
-          fontSize: '0.8em'
+          flex: 1,
+          background: '#000',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          overflow: 'hidden',
+          position: 'relative'
         }}>
-          {status}
+          <canvas
+            ref={canvasRef}
+            style={{
+              maxWidth: '100%',
+              maxHeight: '100%',
+              display: 'block',
+              touchAction: 'none',
+              outline: 'none'
+            }}
+            onPointerDown={handlePointer}
+            onPointerMove={handlePointer}
+            onPointerUp={handlePointer}
+            onPointerLeave={handlePointer}
+            tabIndex={0}
+          />
+
+          {/* Status Overlay */}
+          <div style={{
+            position: 'absolute',
+            top: 10,
+            left: 10,
+            color: 'rgba(255,255,255,0.7)',
+            pointerEvents: 'none',
+            fontSize: '0.8em'
+          }}>
+            {status}
+          </div>
         </div>
+
+        {/* Settings Panel */}
+        {showSettings && (
+          <div style={{
+            width: 300,
+            background: '#fff',
+            borderLeft: '1px solid #ccc',
+            padding: 20,
+            overflowY: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 4
+          }}>
+            <h3>Settings</h3>
+            <div style={{ fontSize: '0.8em', color: '#666', marginTop: 10 }}>
+              Changes will take effect on next connection.
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: 5 }}>Max Size</label>
+              <input type="number" value={maxSize} onChange={e => setMaxSize(Number(e.target.value))} disabled={isRunning} style={{ width: '100%', padding: 5 }} />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', marginBottom: 5 }}>Video Codec</label>
+              <select value={videoCodec} onChange={e => setVideoCodec(e.target.value as any)} disabled={isRunning} style={{ width: '100%', padding: 5 }}>
+                <option value="h264">H.264</option>
+                <option value="h265">H.265</option>
+                <option value="av1">AV1</option>
+              </select>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', marginBottom: 5 }}>Bit Rate</label>
+              <input type="number" value={videoBitRate} onChange={e => setVideoBitRate(Number(e.target.value))} disabled={isRunning} style={{ width: '100%', padding: 5 }} />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', marginBottom: 5 }}>Max FPS</label>
+              <input type="number" value={maxFps} onChange={e => setMaxFps(Number(e.target.value))} disabled={isRunning} style={{ width: '100%', padding: 5 }} />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', marginBottom: 5 }}>Decoder</label>
+              <select value={decoderName} onChange={e => setDecoderName(e.target.value as any)} disabled={isRunning} style={{ width: '100%', padding: 5 }}>
+                <option value="tinyh264">TinyH264 (Software)</option>
+                <option value="webcodecs">WebCodecs (Hardware)</option>
+              </select>
+            </div>
+
+            <div>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <input type="checkbox" checked={audio} onChange={e => setAudio(e.target.checked)} disabled={isRunning} />
+                Audio
+              </label>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Bottom Navigation Bar */}
