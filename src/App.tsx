@@ -75,7 +75,7 @@ function App() {
 
       // 2. Push Server
       setStatus('Fetching server...');
-      const response = await fetch('/scrcpy-server');
+      const response = await fetch('./scrcpy-server');
       if (!response.ok) throw new Error('Failed to fetch server file');
       const buffer = await response.arrayBuffer();
       const content = new Uint8Array(buffer);
@@ -390,17 +390,16 @@ function App() {
             flexDirection: 'column',
             gap: 4
           }}>
-            <h3>Settings</h3>
-            <div style={{ fontSize: '0.8em', color: '#666', marginTop: 10 }}>
+            <div style={{ fontSize: '0.8em', color: '#666'}}>
               Changes will take effect on next connection.
             </div>
             <div>
-              <label style={{ display: 'block', marginBottom: 5 }}>Max Size</label>
+              <label style={{ display: 'block', marginBottom: 4 }}>Max Size</label>
               <input type="number" value={maxSize} onChange={e => setMaxSize(Number(e.target.value))} disabled={isRunning} style={{ width: '100%', padding: 5 }} />
             </div>
 
             <div>
-              <label style={{ display: 'block', marginBottom: 5 }}>Video Codec</label>
+              <label style={{ display: 'block', marginBottom: 4 }}>Video Codec</label>
               <select value={videoCodec} onChange={e => setVideoCodec(e.target.value as any)} disabled={isRunning} style={{ width: '100%', padding: 5 }}>
                 <option value="h264">H.264</option>
                 <option value="h265">H.265</option>
@@ -409,17 +408,17 @@ function App() {
             </div>
 
             <div>
-              <label style={{ display: 'block', marginBottom: 5 }}>Bit Rate</label>
+              <label style={{ display: 'block', marginBottom: 4 }}>Bit Rate</label>
               <input type="number" value={videoBitRate} onChange={e => setVideoBitRate(Number(e.target.value))} disabled={isRunning} style={{ width: '100%', padding: 5 }} />
             </div>
 
             <div>
-              <label style={{ display: 'block', marginBottom: 5 }}>Max FPS</label>
+              <label style={{ display: 'block', marginBottom: 4 }}>Max FPS</label>
               <input type="number" value={maxFps} onChange={e => setMaxFps(Number(e.target.value))} disabled={isRunning} style={{ width: '100%', padding: 5 }} />
             </div>
 
             <div>
-              <label style={{ display: 'block', marginBottom: 5 }}>Decoder</label>
+              <label style={{ display: 'block', marginBottom: 4 }}>Decoder</label>
               <select value={decoderName} onChange={e => setDecoderName(e.target.value as any)} disabled={isRunning} style={{ width: '100%', padding: 5 }}>
                 <option value="tinyh264">TinyH264 (Software)</option>
                 <option value="webcodecs">WebCodecs (Hardware)</option>
